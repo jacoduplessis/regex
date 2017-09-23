@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Regex</title>
+  <style>
+    * {
+      box-sizing: inherit
+    }
+
+    *:before, *:after {
+      box-sizing: inherit
+    }
+
+    * + * {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    html {
+      font-size: 20px;
+      font-family: "Iosevka", monospace;
+      box-sizing: border-box;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input, textarea {
+      font-family: "Iosevka Medium", monospace;
+      font-size: 16px;
+      display: block;
+      padding: .5rem;
+      width: 100%;
+    }
+
+    #container {
+      padding: 1rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <h1>$name</h1>
+  <label for="regex">Regex</label>
+  <input name="regex" id="regex">
+  <label for="test">Test</label>
+  <textarea name="test" id="test" rows="10"></textarea>
+  <div id="response"></div>
+  <label for="replace">Replace</label>
+  <input name="replace" id="replace">
+  <label>Replaced</label>
+  <pre id="replaced"></pre>
+</div>
+
+<script>
+  const flags = {
+    "M": {name: "Multiline", enabled: true},
+    "A": {name: "ASCII", enabled: false},
+    "I": {name: "Ignore Case", enabled: false},
+  }
+  const q = (s) => document.querySelector(s)
+  const r = q("#regex")
+  const t = q("#test")
+  const f = q("#response")
+  const s = q("#replace")
+
+  function update() {
+    const regex = r.value
+    const test = t.value
+    const replace = s.value
+
+    localStorage.setItem("history", JSON.stringify({regex, test, replace}))
+
+    fetch(`/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({regex, test, replace, flags})
+    }).then(resp => {
+      resp.json().then(data => {
+        console.log(data)
+        q("#replaced").innerHTML = data.replaced
+        f.innerHTML = JSON.stringify(data.matches)
+      })
+    })
+  }
+
+  r.addEventListener("input", update)
+  t.addEventListener("input", update)
+  s.addEventListener("input", update)
+
+  const history = JSON.parse(localStorage.getItem("history"))
+  r.value = history.regex
+  t.value = history.test
+  s.value = history.replace
+  update()
+
+</script>
+</body>
+</html>
